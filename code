@@ -1,0 +1,46 @@
+import numpy as np
+import os
+import cv2
+from sklearn import svm
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+train_data_dir = '/kaggle/input/dogs-vs-cats/train'
+validation_data_dir = '/kaggle/input/dogs-vs-cats/test'
+
+
+img_width, img_height = 150, 150
+
+
+
+datagen = ImageDataGenerator(rescale=1. / 255)
+
+train_images = datagen.flow_from_directory(
+    train_data_dir,
+    target_size=(img_width, img_height),
+    batch_size=32,
+    class_mode=None,
+    shuffle=False)
+
+validation_images = datagen.flow_from_directory(
+    validation_data_dir,
+    target_size=(img_width, img_height),
+    batch_size=32,
+    class_mode=None,
+    shuffle=False)
+
+
+train_labels = np.array([0] * (len(train_images) // 2) + [1] * (len(train_images) // 2))  # 0 for dogs, 1 for cats
+validation_labels = np.array([0] * (len(validation_images) // 2) + [1] * (len(validation_images) // 2))
+
+
+train_images = np.reshape(train_images, (len(train_images), -1))
+validation_images = np.reshape(validation_images, (len(validation_images), -1))
+
+
+clf = svm.SVC(kernel='linear')
+
+
+clf.fit(train_images, train_labels)
+
+accuracy = clf.score(validation_images, validation_labels)
+print(f"Validation Accuracy: {accuracy}")
